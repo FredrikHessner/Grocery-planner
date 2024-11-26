@@ -1,28 +1,50 @@
 import React, { useState } from 'react';
+import IngredientList from "./IngredientList";
+import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 
 const GroceryList = () => {
-    const [grocery, setGrocery] = useState('');
+    const [ingredient, setIngredient] = useState('');
     const [quantity, setQuantity] = useState('');
     const [measurement, setMeasurement] = useState('');
     const [groceries, setGroceries] = useState([]);
 
     // Add item with quantity and measurement to the list
-    const addGrocery = () => {
-        if (
-            grocery.trim() !== '' &&
-            quantity.trim() !== '' &&
-            measurement.trim() !== '' &&
-            !isNaN(quantity)
-        ) {
-            setGroceries([
-                ...groceries,
-                { name: grocery.trim(), quantity: parseInt(quantity, 10), measurement: measurement.trim() },
-            ]);
-            setGrocery('');
-            setQuantity('');
-            setMeasurement('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+    
+        // Prepare the data
+        const newIngredient = {
+          ingredient,
+          quantity: parseInt(quantity), // Ensure quantity is a number
+          measurement,
+        };
+    
+        try {
+          // Send POST request to the server
+          const response = await fetch("http://localhost:5000/add-ingredient", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newIngredient),
+          });
+    
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Ingredient added:", data);
+            // Clear form fields
+            setIngredient("");
+            setQuantity("");
+            setMeasurement("");
+          } else {
+            console.error("Failed to add ingredient");
+            alert("Error adding ingredient. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error:", error);
         }
-    };
+      };
 
     // Remove item from the list
     const removeGrocery = (index) => {
@@ -35,9 +57,9 @@ const GroceryList = () => {
             <div style={styles.inputContainer}>
                 <input
                     type="text"
-                    value={grocery}
-                    onChange={(e) => setGrocery(e.target.value)}
-                    placeholder="Enter grocery item"
+                    value={ingredient}
+                    onChange={(e) => setIngredient(e.target.value)}
+                    placeholder="Enter ingredient item"
                     style={styles.input}
                 />
                 <input
@@ -54,22 +76,21 @@ const GroceryList = () => {
                     placeholder="Measurement (e.g., kg, lbs)"
                     style={styles.measurementInput}
                 />
-                <button onClick={addGrocery} style={styles.addButton}>
-                    Add
-                </button>
             </div>
-            <ul style={styles.list}>
-                {groceries.map((item, index) => (
-                    <li key={index} style={styles.listItem}>
-                        <span>
-                            {item.name} - {item.quantity} {item.measurement}
-                        </span>
-                        <button onClick={() => removeGrocery(index)} style={styles.removeButton}>
-                            Remove
+            <Router>
+                <div style={styles.inputContainer}>
+                    <nav>
+                        <button onClick={handleSubmit} style={styles.addButton}>
+                            Add
                         </button>
-                    </li>
-                ))}
-            </ul>
+                        <Link to="/ingredients"> View</Link>
+                    </nav>
+
+                    <Routes>
+                    <Route path="/ingredients" element={<IngredientList />} />
+                    </Routes>
+                </div>
+            </Router>
         </div>
     );
 };
