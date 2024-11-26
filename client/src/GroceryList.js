@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect, useRef } from 'react';
 import IngredientList from "./IngredientList";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 
@@ -51,6 +51,19 @@ const GroceryList = () => {
         setGroceries(groceries.filter((_, i) => i !== index));
     };
 
+    const ingredientListRef = useRef(null);
+
+    // Refresh the ingredient list every 0.25 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (ingredientListRef.current) {
+                ingredientListRef.current.fetchIngredients();
+            }
+        }, 250);
+
+        return () => clearInterval(interval); // Cleanup interval on component unmount
+    }, []);    
+
     return (
         <div style={styles.container}>
             <h1>Grocery List</h1>
@@ -87,7 +100,7 @@ const GroceryList = () => {
                     </nav>
 
                     <Routes>
-                    <Route path="/ingredients" element={<IngredientList />} />
+                    <Route path="/ingredients" element={<IngredientList ref={ingredientListRef} />} />
                     </Routes>
                 </div>
             </Router>

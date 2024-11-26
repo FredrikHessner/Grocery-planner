@@ -1,28 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 
-const IngredientList = () => {
+const IngredientList = forwardRef((props, ref) => {
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch ingredients from the backend
-  useEffect(() => {
     const fetchIngredients = async () => {
-      try {
+        try {
         const response = await fetch("http://localhost:5000/ingredients");
         if (!response.ok) {
-          throw new Error("Failed to fetch ingredients");
+            throw new Error("Failed to fetch ingredients");
         }
         const data = await response.json();
         setIngredients(data);
-      } catch (error) {
+        } catch (error) {
         console.error("Error fetching ingredients:", error);
-      } finally {
+        } finally {
         setLoading(false);
-      }
+        }
     };
 
-    fetchIngredients();
-  }, []);
+
+  useImperativeHandle(ref, () => ({
+    fetchIngredients,
+}));
+
+useEffect(() => {
+    fetchIngredients(); // Initial fetch
+}, []);
 
   if (loading) {
     return <p>Loading ingredients...</p>;
@@ -51,6 +55,6 @@ const IngredientList = () => {
       </table>
     </div>
   );
-};
+});
 
 export default IngredientList;
