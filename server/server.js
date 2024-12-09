@@ -68,6 +68,22 @@ app.post("/add-ingredient", async (req, res) => {
     }
   });
 
+  app.delete("/ingredients/:ingredient", async (req, res) => {
+    const { ingredient } = req.params;
+  
+    try {
+      const result = await pool.query("DELETE FROM ingredients WHERE ingredient = $1", [ingredient]);
+      if (result.rowCount > 0) {
+        res.status(200).send({ message: "Ingredient deleted successfully" });
+      } else {
+        res.status(404).send({ message: "Ingredient not found" });
+      }
+    } catch (err) {
+      console.error("Error deleting ingredient:", err.message);
+      res.status(500).send("Server error");
+    }
+  });
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
